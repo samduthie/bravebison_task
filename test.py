@@ -1,6 +1,6 @@
 import unittest
 
-from run import process_command, Rover
+from rover import Rover
 
 
 class RoverTests(unittest.TestCase):
@@ -113,7 +113,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_north()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": 0,
             "y": 20
@@ -126,7 +126,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_south()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": 0,
             "y": -20
@@ -139,7 +139,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_east()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": 20,
             "y": 0
@@ -152,7 +152,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_west()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": -20,
             "y": 0
@@ -165,7 +165,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_north()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": 0,
             "y": 20
@@ -178,7 +178,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_south()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": 0,
             "y": -20
@@ -190,7 +190,7 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_east()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": 20,
             "y": 0
@@ -202,12 +202,49 @@ class RoverTests(unittest.TestCase):
         for _ in range(20):
             rover.go_west()
 
-        output = rover.output()
+        output = rover.output
         expected_output = {
             "x": -20,
             "y": 0
         }
         self.assertEqual(output['position'], expected_output)
+
+    def test_rover_can_reach_home_from_base(self):
+        rover = Rover(0, 0)
+        self.assertTrue(rover.can_reach_home(1, 1))
+
+    def test_rover_can_reach_home_with_enough_fuel(self):
+        rover = Rover(5, 5)
+        self.assertTrue(rover.can_reach_home(10, 10))
+
+    def test_rover_cant_reach_home_without_fuel(self):
+        rover = Rover(0, 0)
+        rover.fuel_gauge = 0
+        self.assertFalse(rover.can_reach_home(10, 10))
+
+    def test_rover_can_reach_home_with_fuel_when_turning_once(self):
+        rover = Rover(0, 0)
+        rover.fuel_gauge = 3
+        rover.direction_index = 0  # north
+        self.assertTrue(rover.can_reach_home(1, 1))
+
+    def test_rover_cant_reach_home_without_sufficient_fuel_when_turning_once(self):
+        rover = Rover(0, 0)
+        rover.fuel_gauge = 2
+        rover.direction_index = 0  # north
+        self.assertFalse(rover.can_reach_home(1, 1))
+
+    def test_rover_can_reach_home_with_fuel_when_turning_twice(self):
+        rover = Rover(0, 0)
+        rover.fuel_gauge = 4
+        rover.direction_index = 3  # west
+        self.assertTrue(rover.can_reach_home(1, 1))
+
+    def test_rover_cant_reach_home_without_sufficient_fuel_when_turning_twice(self):
+        rover = Rover(0, 0)
+        rover.fuel_gauge = 3
+        rover.direction_index = 3 # west
+        self.assertFalse(rover.can_reach_home(1, 1))
 
 
 if __name__ == '__main__':

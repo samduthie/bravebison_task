@@ -1,90 +1,7 @@
 import json
 import sys
 
-
-class RoverException(Exception):
-    pass
-
-
-class Rover(object):
-    def __init__(self, x, y, identifier='1AFC'):
-        self.position = [0, 0]
-        self.directions = ['north', 'east', 'south', 'west']
-        self.direction_index = 0
-        self.fuel_gauge = 20
-
-        #  the first response must give the rover_id although the rover_id is not known in the first example command
-        #  because of this, it is auto-set and then allowed to be overwritten
-        self.identifier = identifier
-
-    def go_north(self):
-        self.position[1] += 1
-
-    def go_south(self):
-        self.position[1] -= 1
-
-    def go_east(self):
-        self.position[0] += 1
-
-    def go_west(self):
-        self.position[0] -= 1
-
-    @property
-    def fuel_exists(self):
-        if self.fuel_gauge > 0:
-            return True
-        else:
-            return False
-
-    def turn_left(self):
-        if self.direction_index == 0:
-            self.direction_index = len(self.directions)
-        self.direction_index -= 1
-
-    def turn_right(self):
-        if self.direction_index == 3:
-            self.direction_index = -1
-        self.direction_index += 1
-
-    def use_fuel(self):
-        if self.fuel_gauge > 0:
-            self.fuel_gauge -= 1
-
-    @property
-    def direction(self):
-        return self.directions[self.direction_index]
-
-    def turn_direction(self, direction_to_move):
-        if self.fuel_exists and direction_to_move == 'turn-right':
-            self.turn_right()
-        elif self.fuel_exists and direction_to_move == 'turn-left':
-            self.turn_left()
-        else:
-            raise RoverException('Please only pass in turn-left or turn-right as directional commands')
-
-        self.use_fuel()
-
-    def move(self):
-        if self.fuel_exists and self.direction == 'north':
-            self.go_north()
-        if self.fuel_exists and self.direction == 'south':
-            self.go_south()
-        if self.fuel_exists and self.direction == 'west':
-            self.go_west()
-        if self.fuel_exists and self.direction == 'east':
-            self.go_east()
-
-        self.use_fuel()
-
-    def output(self):
-        return {
-            "rover-id": self.identifier,
-            "position": {
-                "x": self.position[0],
-                "y": self.position[1]
-            },
-            "direction": self.direction
-        }
+from rover import Rover, RoverException
 
 
 def process_command(rover_command, rover):
@@ -101,7 +18,7 @@ def process_command(rover_command, rover):
     if initial_rover_command:
         initial_x = int(initial_position['x'])
         initial_y = int(initial_position['y'])
-        rover.position = [initial_x, initial_y]
+        rover.position = rover.home_base = [initial_x, initial_y]
 
     elif standard_rover_command:
         if command == 'move-forward':
@@ -109,11 +26,19 @@ def process_command(rover_command, rover):
         else:
             rover.turn_direction(command)
 
-    return rover.output()
+    return rover.output
 
 
 def process_commands(commands):
-    rover = Rover(0, 0)
+    rover_id = None
+    try:
+        rover_id = commands[1]['rover-id']
+    except KeyError:
+        rover_id = '1AFC'  # default rover name if none available
+    except IndexError:
+        pass
+
+    rover = Rover(0, 0, rover_name=rover_id)
 
     logs_from_rover = []
 
